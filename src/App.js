@@ -11,7 +11,6 @@ import PdfViewer from "./components/Text Editor/PdfViewer";
 import View from "./components/View";
 
 
-
 function App() {
   return (
     <BrowserRouter>
