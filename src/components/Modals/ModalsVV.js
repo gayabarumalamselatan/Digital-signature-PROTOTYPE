@@ -24,7 +24,7 @@ function ModalsVV() {
     }
   }
 
-  const fetchData = async () => {
+  const fetchData = async (id) => {
     try{
       const response = await axios.get("/api/data"); //<-- Masukin api/endpoint disini
       setData(response.data);

@@ -93,24 +93,65 @@
 import axios from "axios";
 import React, { useEffect, useState } from "react";
 import Sidebar from "../Sidebar.jsx";
-import ModalsVD from "../components/Modals/ModalsVD.js";
+// import ModalsVD from "../components/Modals/ModalsVD.js";
 import ModalsVE from "../components/Modals/ModalsVE.js";
 import ModalsVV from "../components/Modals/ModalsVV.js";
 import "../components/styling/View.css";
+import Swal from "sweetalert2";
+import withReactContent from "sweetalert2-react-content";
 
+const MySwal = withReactContent(Swal);
+
+const token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsIlJPTEVfVVNFUiI6dHJ1ZSwiZXhwIjoxNzE5MjA5MTQ1LCJpYXQiOjE3MTkyMDU1NDV9.dbdUKS0sc8XXeEaatuQAs8Nm2JSNhnClmJPIe1agFCJEIxV04yQe-ND3u_xoEs373ZbeTlY-faXiQZ-Ai2vQKg";
 const View = () => {
   const [data, setData] = useState([]);
 
   useEffect(() => {
     fetchData();
   }, []);
-
+  
   const fetchData = async () => {
     try {
-      const response = await axios.get("/api/data"); // Ganti dengan endpoint yang sesuai
-      setData(response.data); // Menyimpan data dari respons ke state data
+      const headers = { Authorization: `Bearer ${token}` };
+      const response = await axios.get("http://10.8.135.84:18080/internal-memo-service/form/list", { headers });
+      setData(response.data);
     } catch (error) {
       console.error("Error fetching data: ", error);
+    }
+  };
+
+  const deleteData = async (id) => {
+    try {
+      const data = {id};
+      const headers = { Authorization: `Bearer ${token}` };
+      const response = await axios.delete(`http://10.8.135.84:18080/internal-memo-service/form/delete/`, { headers, data });
+      return response.data;
+    } catch (error) {
+      console.error('Error deleting data:', error);
+      throw error;
+    }
+  };
+
+  const removeData = async (id) => {
+    const result = await MySwal.fire({
+      title: "Are you sure?",
+      text: "You won't be able to revert this!",
+      icon: "warning",
+      showCancelButton: true,
+      confirmButtonText: "Yes, delete it!",
+      cancelButtonText: "No, cancel!",
+    });
+
+    if (result.isConfirmed) {
+      try {
+        console.log(id);
+        await deleteData(id);
+        fetchData();
+        MySwal.fire("Deleted!", "Your item has been deleted.", "success");
+      } catch (error) {
+        console.error(error);
+        MySwal.fire("Error!", "There was an error deleting the item.", "error");
+      }
     }
   };
 
@@ -139,7 +180,7 @@ const View = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
+                  {/* <tr>
                     <td>1</td>
                     <td>title</td>
                     <td>requestor</td>
@@ -155,10 +196,10 @@ const View = () => {
                         <ModalsVD />
                         <ModalsVV />
                       </td>
-                  </tr>
+                  </tr> */}
                   {data.map((item, index) => (
                     <tr key={index}>
-                      <th scope="row">{index + 1}</th>
+                      <th >{item.id}</th>
                       <td>{item.title}</td>
                       <td>{item.requestor}</td>
                       <td>{item.requestDate}</td>
@@ -170,7 +211,8 @@ const View = () => {
                       <td>{item.userApproval2}</td>
                       <td className="gap-2">
                         <ModalsVE />
-                        <ModalsVD />
+                        {/* <ModalsVD /> */}
+                        <button className="btn btn-danger" onClick={()=>removeData(item.id)}>Delete</button>
                         <ModalsVV />
                       </td>
                     </tr>

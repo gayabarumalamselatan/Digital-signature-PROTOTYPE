@@ -6,12 +6,14 @@ import { ProgressBar } from "primereact/progressbar";
 import { Button } from "primereact/button";
 import { Image } from "primereact/image";
 import { Tag } from "primereact/tag";
+import axios from "axios";
 import "primeicons/primeicons.css";
 import "primeflex/primeflex.css";
 import "primereact/resources/primereact.css";
 import "primereact/resources/themes/lara-light-indigo/theme.css";
 import ".//flags.css";
 import ".//index.css";
+
 
 const TemplateDemo = () => {
   const toast = useRef(null);
@@ -20,6 +22,9 @@ const TemplateDemo = () => {
 
   const maxFileSize = 25 * 1024 * 1024; // 25MB in bytes
   const allowedFileTypes = ["image/*", "application/pdf", "application/vnd.openxmlformats-officedocument.wordprocessingml.document"];
+
+  // Example Bearer token obtained from authentication (replace with your actual token)
+  const accessToken = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJhZG1pbiIsIlJPTEVfVVNFUiI6dHJ1ZSwiZXhwIjoxNzE5MjAyNDYxLCJpYXQiOjE3MTkxOTg4NjF9.3KCe4GYQW699jU788BsEfCjA9Z2lB4yZtBszHXHk9wIvjUCe-TnNTBJUIRBCgZHlq_FOot7Ode78y5eN1bbSmQ"; // Replace with your actual access token
 
   const onTemplateSelect = (e) => {
     let _totalSize = totalSize; // Initialize with existing total size
@@ -45,7 +50,7 @@ const TemplateDemo = () => {
       toast.current.show({
         severity: "error",
         summary: "Error",
-        detail: `File size exceeds the limit of 25MB.`,
+        detail: "File size exceeds the limit of 25MB.",
       });
       setTotalSize(totalSize); // Restore previous total size
       e.originalEvent.preventDefault(); // Prevent file from being added
@@ -55,18 +60,50 @@ const TemplateDemo = () => {
     setTotalSize(_totalSize);
   };
 
-  const onTemplateUpload = (e) => {
-    let _totalSize = totalSize;
+  const onTemplateUpload = async () => {
+    const files = fileUploadRef.current.getFiles();
 
-    e.files.forEach((file) => {
-      _totalSize += file.size || 0;
+    if (files.length === 0) {
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: "No files selected for upload.",
+      });
+      return;
+    }
+
+    const formData = new FormData();
+    files.forEach((file) => {
+      formData.append("file", file); // Ensure 'file' matches the expected key on the server
     });
 
-    setTotalSize(_totalSize);
-    toast.current.show({ severity: "info", summary: "Success", detail: "File Uploaded" });
+    try {
+      // Configure Axios request with Bearer token in Authorization header
+      const response = await axios.post("http://10.8.135.84:18080/internal-memo-service/form/file-upload", formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
-    // Clear file list after upload completes
-    fileUploadRef.current.clear();
+      setTotalSize(0);
+
+      toast.current.show({
+        severity: "info",
+        summary: "Success",
+        detail: "File Uploaded",
+      });
+
+      // Clear file list after upload completes
+      fileUploadRef.current.clear();
+    } catch (error) {
+      console.error("Upload error:", error.response || error.message || error);
+      toast.current.show({
+        severity: "error",
+        summary: "Error",
+        detail: `Failed to upload files: ${error.response?.data?.message || error.message}`,
+      });
+    }
   };
 
   const onTemplateRemove = (file, callback) => {
@@ -84,9 +121,16 @@ const TemplateDemo = () => {
     const formattedValue = fileUploadRef && fileUploadRef.current ? fileUploadRef.current.formatSize(totalSize) : "0 B";
 
     return (
-      <div className={className} style={{ backgroundColor: "transparent", display: "flex", alignItems: "center" }}>
+      <div
+        className={className}
+        style={{
+          backgroundColor: "transparent",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
         {chooseButton}
-        {uploadButton}
+        <Button type="button" icon="pi pi-cloud-upload" className="custom-upload-btn p-button-success p-button-rounded p-button-outlined" onClick={onTemplateUpload} />
         {cancelButton}
         <div className="flex align-items-center gap-2 ml-auto">
           <span>{formattedValue} / 25 MB</span>
@@ -126,21 +170,43 @@ const TemplateDemo = () => {
   const emptyTemplate = () => {
     return (
       <div className="flex align-items-center flex-column">
-        <i className="pi pi-image mt-3 p-5" style={{ fontSize: "5em", borderRadius: "50%", backgroundColor: "var(--surface-b)", color: "var(--surface-d)" }}></i>
-        <span style={{ fontSize: "1.2em", color: "var(--text-color-secondary)" }} className="my-5">
-          Drag and Drop PDF/Docx or Image Here
+        <i
+          className="pi pi-image mt-3 p-5"
+          style={{
+            fontSize: "5em",
+            borderRadius: "50%",
+            backgroundColor: "var(--surface-b)",
+            color: "var(--surface-d)",
+          }}
+        ></i>
+        <span
+          style={{
+            fontSize: "1.2em",
+            color: "var(--text-color-secondary)",
+          }}
+          className="my-5"
+        >
+          Drag and Drop PDF/Docx Here
         </span>
       </div>
     );
   };
 
-  const chooseOptions = { icon: "pi pi-fw pi-images", iconOnly: true, className: "custom-choose-btn p-button-rounded p-button-outlined" };
+  const chooseOptions = {
+    icon: "pi pi-fw pi-images",
+    iconOnly: true,
+    className: "custom-choose-btn p-button-rounded p-button-outlined",
+  };
   const uploadOptions = {
     icon: "pi pi-fw pi-cloud-upload",
     iconOnly: true,
     className: "custom-upload-btn p-button-success p-button-rounded p-button-outlined",
   };
-  const cancelOptions = { icon: "pi pi-fw pi-times", iconOnly: true, className: "custom-cancel-btn p-button-danger p-button-rounded p-button-outlined" };
+  const cancelOptions = {
+    icon: "pi pi-fw pi-times",
+    iconOnly: true,
+    className: "custom-cancel-btn p-button-danger p-button-rounded p-button-outlined",
+  };
 
   const isFileTypeAllowed = (fileType) => {
     return allowedFileTypes.some((type) => fileType.startsWith(type.replace("*", "")));
@@ -156,12 +222,10 @@ const TemplateDemo = () => {
 
       <FileUpload
         ref={fileUploadRef}
-        name="demo[]"
-        url="/api/upload"
+        name="File"
         multiple
         accept={allowedFileTypes.join(",")}
         maxFileSize={maxFileSize}
-        onUpload={onTemplateUpload}
         onSelect={onTemplateSelect}
         onError={onTemplateClear}
         onClear={onTemplateClear}
@@ -171,9 +235,10 @@ const TemplateDemo = () => {
         chooseOptions={chooseOptions}
         uploadOptions={uploadOptions}
         cancelOptions={cancelOptions}
+        customUpload
       />
     </div>
   );
 };
 
-export default TemplateDemo;
+export default TemplateDemo;

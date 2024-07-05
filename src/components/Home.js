@@ -1,9 +1,7 @@
-
-
 import { Assignment, AssignmentTurnedIn, CheckCircle, HourglassEmpty, Verified } from "@mui/icons-material";
 import { Box, Card, CardContent, Container, Grid, Paper, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from "@mui/material";
 import "chart.js/auto";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Doughnut } from "react-chartjs-2";
 import Sidebar from "../Sidebar";
 import Create from "./Create";
@@ -20,28 +18,135 @@ const Home = () => {
     { label: "Approved", value: 31, color: "#4CAF50", icon: <CheckCircle color="success" /> },
   ];
 
-  const [currentPage, setCurrentPage] = useState(null);
+  // const [currentPage, setCurrentPage] = useState();
+  const [page, setPage] = useState(window.location.hash);
 
-  const navigateTo = (page) => {
-    setCurrentPage(page);
+  // useEffect(() => {
+  //   const handleHashChange = () => {
+  //     setPage(window.location.hash);
+  //   };
+  //   window.addEventListener('hashchange', handleHashChange);
+
+  //   return () => {
+  //     window.removeEventListener('hashchange', handleHashChange);
+  //   };
+  // }, []);
+
+  // history api
+  useEffect(() => {
+    const handlePopState = () => {
+      setPage(window.location.pathname);
+    };
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
+  const navigate = (path) => {
+    window.history.pushState({}, '', path);
+    setPage(path);
   };
-  
-  if (currentPage === 'create'){
-    return <Create/>;
-  } else if (currentPage === 'view'){
-    return <View/>;
-  }else if(currentPage === 'report'){
-    return <Report/>;
-  }else if(currentPage === 'pdf'){
-    return <PdfViewer/>;
-  };
+
+  // const navigateTo = (page) => {
+  //   setCurrentPage(page);
+  // };
+
+    // const handleRefresh = () => {
+    //   window.location.reload();
+    // };
+
+    const handleRefresh = () => {
+      window.history.replaceState({}, '', '/');
+      setPage('/home');
+    };
+
+    if (page === '/create'){
+      return(
+        <div className="text-end" >
+          <button className="btn btn-primary"  onClick={handleRefresh}>back</button>
+          <Create  />
+        </div> 
+      );
+    } else if (page === '/view'){
+      return (
+        <div className="text-end">
+          <button className="btn btn-primary" onClick={handleRefresh}>back</button>
+          <View/>
+        </div>
+      )
+      ;
+    } else if (page === '/report'){
+      return (
+        <div className="text-end">
+          <button className="btn btn-primary" onClick={handleRefresh}>back</button>
+            <Report/>
+        </div>
+      );
+    } else if (page === '/pdf'){
+      return(
+        <div className="text-end">
+          <button className="btn btn-primary" onClick={handleRefresh}>back</button>
+          <PdfViewer/>
+        </div>
+      );
+    } else if(page === '/home'){
+      return(
+        <>
+          <Home/>
+        </>
+      )
+    }
+
+  // if (currentPage === 'create'){
+  //   return(
+  //     <div className="text-end" >
+  //       <button className="btn btn-primary"  onClick={handleRefresh}>back</button>
+  //       <Create navigateTo={navigateTo} />
+  //     </div> 
+  //   );
+  // } else if (currentPage === 'view'){
+  //   return (
+  //     <div className="text-end">
+  //       <button className="btn btn-primary" onClick={handleRefresh}>back</button>
+  //       <View navigateTo={navigateTo} />
+  //     </div>
+  //   )
+  //   ;
+  // } else if (currentPage === 'report'){
+  //   return (
+  //     <div className="text-end">
+  //       <button className="btn btn-primary" onClick={handleRefresh}>back</button>
+  //         <Report navigateTo={navigateTo} />
+  //     </div>
+  //   );
+  // } else if (currentPage === 'pdf'){
+  //   return(
+  //     <div className="text-end">
+  //       <button className="btn btn-primary" onClick={handleRefresh}>back</button>
+  //       <PdfViewer navigateTo={navigateTo} />
+  //     </div>
+  //   );
+  // }
+
+  // const transactionData = [
+  //   { status: "APPROVED", jumlah: 31, link: () => navigateTo('create'), href: '#create' },
+  //   { status: "PENDING", jumlah: 16, link: () => navigateTo('view'), href:"#view" },
+  //   { status: "REWORK", jumlah: 1, link: () => navigateTo('report') },
+  //   { status: "VERIFIED", jumlah: 3, link: () => navigateTo('pdf') },
+  // ];
 
   const transactionData = [
-    { status: "APPROVED", jumlah: 31, link: ()=> navigateTo('create') },
-    { status: "PENDING", jumlah: 16,  link: () => navigateTo('view')},
-    { status: "REWORK", jumlah: 1, link: ()=> navigateTo('report')},
-    { status: "VERIFIED", jumlah: 3, link: () => navigateTo('pdf') },
+    { status: "APPROVED", jumlah: 31, href: '/create' },
+    { status: "PENDING", jumlah: 16, href:"/view" },
+    { status: "REWORK", jumlah: 1, href: "/report" },
+    { status: "VERIFIED", jumlah: 3, href:"/pdf" },
   ];
+
+  // hash routing
+  
+  
 
   const chartData = {
     labels: ["APPROVED", "PENDING", "VERIFIED", "REWORK"],
@@ -83,13 +188,13 @@ const Home = () => {
 
   return (
     <>
-    <Sidebar/>
-    <h1>Dashboard</h1>
-      <Container maxWidth="lg">
+      <Sidebar/>
+      <h1>Dashboard</h1>
+      <Container maxWidth= 'auto'>
         <Grid container spacing={3}>
           {summaryData.map((item, index) => (
             <Grid item xs={12} sm={6} md={2.4} key={index}>
-              <Card style={{ backgroundColor: "#fff",  color: "#000", borderRadius: "20px", boxShadow: "none" }}>
+              <Card style={{ backgroundColor: item.color, color: "#fff", borderRadius: "20px" }}>
                 <CardContent>
                   <Box display="flex" alignItems="center">
                     <Box mr={2}>{item.icon}</Box>
@@ -97,7 +202,7 @@ const Home = () => {
                       <Typography variant="subtitle1" align="center">
                         {item.label}
                       </Typography>
-                      <Typography variant="h4" align="left" component="div" fontWeight= "600" >
+                      <Typography variant="h4" align="left" component="div" fontWeight="600">
                         {item.value}
                       </Typography>
                     </Box>
@@ -110,27 +215,27 @@ const Home = () => {
         <Box mt={4}>
           <Grid container spacing={3}>
             <Grid item xs={12} md={6}>
-              <Card style={{borderRadius: "20px", boxShadow:"none"}}>
+              <Card style={{ borderRadius: "20px",  }}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Transaction Status
                   </Typography>
-                  <TableContainer component={Paper}>
+                  <TableContainer component={Paper} style={{borderRadius: "10px"}}>
                     <Table>
                       <TableHead>
-                        <TableRow>
-                          <TableCell>STATUS</TableCell>
-                          <TableCell>JUMLAH</TableCell>
+                        <TableRow style={{backgroundColor:"#03A9F4", }}>
+                          <TableCell style={{color: "#fff", fontWeight: "bold"}}>STATUS</TableCell>
+                          <TableCell style={{color: "#fff", fontWeight: "bold"}}>JUMLAH</TableCell>
                         </TableRow>
                       </TableHead>
-                      <TableBody style={{border:"none"}}>
-                        {transactionData.map((row) => (
-                          <TableRow key={row.status}>
+                      <TableBody style={{ border: "none" }}>
+                        {transactionData.map((row, index) => (
+                          <TableRow key={row.status} style={{ backgroundColor: index % 2 === 0 ? "#fff" : "#f2f2f2" }}>
                             <TableCell>{row.status}</TableCell>
                             <TableCell>
-                                <a href="#" onClick={row.link} >
-                                  {row.jumlah}
-                                </a> 
+                              <a href={row.href} onClick={(e) => { e.preventDefault(); navigate(row.href)}}>
+                                {row.jumlah}
+                              </a>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -145,13 +250,13 @@ const Home = () => {
               </Card>
             </Grid>
             <Grid item xs={12} md={6} width={50}>
-              <Card style={{borderRadius: "20px", boxShadow:"none"}}>
+              <Card style={{ borderRadius: "20px"}}>
                 <CardContent>
                   <Typography variant="h6" gutterBottom>
                     Transaction Status
                   </Typography>
                   <Box display="flex" flexDirection="column" justifyContent="center" alignItems="center" height="100%">
-                    <Doughnut data={chartData} options={chartOptions} />
+                    <Doughnut data={chartData} options={chartOptions} height={10} />
                   </Box>
                 </CardContent>
               </Card>
