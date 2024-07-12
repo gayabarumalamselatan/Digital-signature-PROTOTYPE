@@ -88,6 +88,7 @@ const Sidebar = () => {
     { key: "create", icon: <Create className={classes.icon} />, label: "Create" },
     { key: "view", icon: <Visibility className={classes.icon} />, label: "View" },
     { key: "report", icon: <Assessment className={classes.icon} />, label: "Report" },
+    { key: "verify", icon: <Assessment className={classes.icon} />, label: "Verify" },
     { key: "pdfviewer", icon: <PictureAsPdf className={classes.icon} />, label: "PDF Viewer" },
   ];
 

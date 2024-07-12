@@ -8,6 +8,7 @@ const SignaturePad = ({ show, handleClose }) => {
 
   const sigCanvas = useRef(null);
 
+
   const clear = () => {
     sigCanvas.current.clear();
   };

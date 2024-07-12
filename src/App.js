@@ -9,6 +9,7 @@ import LoginPage from "./components/Login/Login";
 import Report from "./components/Report";
 import PdfViewer from "./components/Text Editor/PdfViewer";
 import View from "./components/View";
+import VerifyMemo from "./components/VerifyMemo";
 
 
 function App() {
@@ -23,6 +24,7 @@ function App() {
         <Route path="/report" element={<Report />} />
         <Route path="/pdfviewer" element={<PdfViewer />} />
         <Route path="/home" element={<Home/>}/>
+        <Route path="/verify" element={<VerifyMemo/>} />
       </Routes>
     </BrowserRouter>
   );

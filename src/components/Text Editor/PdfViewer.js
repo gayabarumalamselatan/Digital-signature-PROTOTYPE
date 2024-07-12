@@ -76,7 +76,7 @@
       const fetchPdf = async () => {
         setLoading(true);
         try {
-          const url = `/sample.pdf`;
+          const url = `${process.env.PUBLIC_URL}/sample.pdf`;
           setPdfFile(url);
           setFileName("sample.pdf");
         } catch (error) {
